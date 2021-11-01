@@ -52,7 +52,7 @@
       const landscape = canvas.height > canvas.width ? 0 : 1;
       const nodeHeight = canvas.height / (landscape ? 100 : 366);
       const nodeWidth = canvas.width / (landscape ? 366 : 100);
-      const nodeOffset = Math.min(nodeHeight, nodeWidth) * 0.25;
+      const nodeOffset = Math.min(nodeHeight, nodeWidth) * 0;
       const nodeDrawHeight = nodeHeight - nodeOffset * 2;
       const nodeDrawWidth = nodeWidth - nodeOffset * 2;
 
