@@ -1,141 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memento Mori</title>
-  <style>
-    :root {
-      --color-on-1: white;
-      --color-on-2: #ccc;
-      --color-on-3: #aaa;
-      --color-bg: black;
-      --size: calc(100vw / 78);
-      --days: 36525;
-    }
-
-    @media (min-width: 600px) {
-      :root {
-        --size: calc(100vw / 97);
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memento Mori</title>
+    <style>
+      html,
+      body {
+        height: 100%;
       }
-    }
 
-    @media (min-width: 1024px) {
-      :root {
-        --size: calc(100vw / 192);
+      body {
+        background: black;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0.5rem;
       }
-    }
 
-    html,
-    body {
-      background: var(--color-bg);
-      font-family: Andale Mono, monospace;
-      height: 100%;
-      margin: 0;
-    }
-
-    body {
-      padding: var(--size);
-    }
-
-    main {
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    div {
-      align-content: flex-start;
-      display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
-      font-size: var(--size);
-      height: calc(var(--size) * 21);
-      line-height: var(--size);
-      margin: calc(var(--size) / 2);
-      position: relative;
-      width: calc(var(--size) * 18);
-    }
-
-    span {
-      color: var(--color-on-1);
-      display: block;
-      height: var(--size);
-      opacity: 0.2;
-      position: relative;
-      text-align: center;
-      width: var(--size);
-    }
-
-    div:nth-child(3n+1) span {
-      color: var(--color-on-1);
-    }
-
-    div:nth-child(3n+2) span {
-      color: var(--color-on-2);
-    }
-
-    div:nth-child(3n+3) span {
-      color: var(--color-on-3);
-    }
-
-    span.past {
-      opacity: 1;
-    }
-  </style>
-</head>
-
-<body>
-  <main></main>
-  <script>
-    const dateStart = new Date(1987, 0, 23);
-    const dateStop = new Date(2087, 0, 23);
-    const now = Date.now();
-
-    const addDaysToDate = (date, days) => {
-      date.setDate(date.getDate() + days);
-      return date;
-    }
-
-    let dateCurrent = new Date(dateStart);
-    let dateAnniversary = new Date(dateCurrent);
-    dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
-
-    let year = document.createElement("div");
-    year.setAttribute("year", dateAnniversary.getFullYear() - dateStart.getFullYear());
-    document.querySelector("main").appendChild(year);
-
-    let index = 0;
-    let daysOld = 0;
-
-    while (dateCurrent < dateStop) {
-      index++;
-      const past = dateCurrent < now;
-      if (!daysOld && !past) {
-        daysOld = index;
-        console.log(`${daysOld} days old`);
-        console.log(`${(daysOld / 36525 * 100).toFixed(2)}% 100-year life lived`);
+      canvas {
+        display: block;
+        height: 100%;
+        image-rendering: pixelated;
+        margin: 0 auto;
+        width: 100%;
       }
-      const span = document.createElement("span");
-      span.innerHTML = "●";
-      if (past) {
-        span.classList.add("past");
+    </style>
+  </head>
+
+  <body>
+    <canvas></canvas>
+
+    <script>
+      const dateStart = new Date(1987, 0, 23);
+      const dateStop = new Date(2087, 0, 23);
+      const now = Date.now();
+
+      const addDaysToDate = (date, days) => {
+        date.setDate(date.getDate() + days);
+        return date;
+      };
+
+      let dateCurrent = new Date(dateStart);
+      let dateAnniversary = new Date(dateCurrent);
+      dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
+
+      const canvas = document.querySelector("canvas");
+      const context = canvas.getContext("2d");
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+      const landscape = canvas.height > canvas.width ? 0 : 1;
+      const nodeHeight = canvas.height / (landscape ? 100 : 366);
+      const nodeWidth = canvas.width / (landscape ? 366 : 100);
+      const nodeOffset = Math.min(nodeHeight, nodeWidth) * 0.25;
+      const nodeDrawHeight = nodeHeight - nodeOffset * 2;
+      const nodeDrawWidth = nodeWidth - nodeOffset * 2;
+
+      context.fillStyle = "black";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      let index = 0;
+      let x = 0;
+      let y = 0;
+      let daysOld = 0;
+
+      for (let i = 0; i < 20; i++) {
+        step();
       }
-      year.appendChild(span);
 
-      addDaysToDate(dateCurrent, 1);
+      function step() {
+        if (dateCurrent < dateStop) {
+          requestAnimationFrame(step);
+          index++;
+          const past = dateCurrent < now;
+          if (!daysOld && !past) {
+            daysOld = index;
+            console.log(`${daysOld} days old`);
+            console.log(
+              `${((daysOld / 36525) * 100).toFixed(2)}% 100-year life lived`
+            );
+          }
+          context.fillStyle = past ? "white" : "#666";
+          context.fillRect(
+            x + nodeOffset,
+            y + nodeOffset,
+            nodeDrawWidth,
+            nodeDrawHeight
+          );
+          if (landscape) {
+            x += nodeWidth;
+          } else {
+            y += nodeHeight;
+          }
 
-      if (dateCurrent >= dateAnniversary && dateCurrent < dateStop) {
-        dateAnniversary = new Date(dateCurrent);
-        dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
-        year = document.createElement("div");
-        const age = dateAnniversary.getFullYear() - dateStart.getFullYear();
-        year.setAttribute("age", age);
-        document.querySelector("main").appendChild(year);
+          addDaysToDate(dateCurrent, 1);
+
+          if (dateCurrent >= dateAnniversary) {
+            if (landscape) {
+              y += nodeHeight;
+              x = 0;
+            } else {
+              x += nodeWidth;
+              y = 0;
+            }
+            dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
+          }
+        }
       }
-    }
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
