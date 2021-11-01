@@ -47,8 +47,8 @@
 
       const canvas = document.querySelector("canvas");
       const context = canvas.getContext("2d");
-      canvas.height = window.innerHeight;
-      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight * 2;
+      canvas.width = window.innerWidth * 2;
       const landscape = canvas.height > canvas.width ? 0 : 1;
       const nodeHeight = canvas.height / (landscape ? 100 : 366);
       const nodeWidth = canvas.width / (landscape ? 366 : 100);
@@ -64,9 +64,9 @@
       let y = 0;
       let daysOld = 0;
 
-      for (let i = 0; i < 20; i++) {
-        step();
-      }
+      // for (let i = 0; i < 10; i++) {
+      step();
+      // }
 
       function step() {
         if (dateCurrent < dateStop) {
