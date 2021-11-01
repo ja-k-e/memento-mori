@@ -22,6 +22,8 @@
         display: block;
         height: 100%;
         margin: 0 auto;
+        object-fit: contain;
+        object-position: center;
         width: 100%;
       }
     </style>
@@ -34,6 +36,12 @@
       const dateStart = new Date(1987, 0, 23);
       const dateStop = new Date(2087, 0, 23);
       const now = Date.now();
+      const paramSpeedMatch = location.search.match(/speed=(\d+)/);
+      const paramSpeed =
+        paramSpeedMatch && paramSpeedMatch[1]
+          ? parseInt(paramSpeedMatch[1])
+          : 1;
+      const speed = isNaN(paramSpeed) ? 1 : paramSpeed || 1;
 
       const addDaysToDate = (date, days) => {
         date.setDate(date.getDate() + days);
@@ -46,14 +54,14 @@
 
       const canvas = document.querySelector("canvas");
       const context = canvas.getContext("2d");
-      canvas.height = window.innerHeight * 4;
-      canvas.width = window.innerWidth * 4;
-      const landscape = canvas.height > canvas.width ? 0 : 1;
-      const nodeHeight = canvas.height / (landscape ? 100 : 366);
-      const nodeWidth = canvas.width / (landscape ? 366 : 100);
-      const nodeOffset = Math.min(nodeHeight, nodeWidth) * -0.1;
-      const nodeDrawHeight = nodeHeight - nodeOffset * 2;
-      const nodeDrawWidth = nodeWidth - nodeOffset * 2;
+      const landscape = window.innerHeight > window.innerWidth ? 0 : 1;
+      const dimension =
+        (landscape ? window.innerWidth : window.innerHeight) * 2;
+      const nodeDi = dimension / 366;
+      const nodeOffset = nodeDi * 0.2;
+      const nodeDrawDi = nodeDi - nodeOffset * 2;
+      canvas.height = landscape ? nodeDi * 100 : nodeDi * 366;
+      canvas.width = landscape ? nodeDi * 366 : nodeDi * 100;
 
       context.fillStyle = "black";
       context.fillRect(0, 0, canvas.width, canvas.height);
@@ -63,47 +71,51 @@
       let y = 0;
       let daysOld = 0;
 
-      for (let i = 0; i < 10; i++) {
-        step();
-      }
+      step();
 
       function step() {
+        const n = speed;
+        for (let i = 0; i < n; i++) {
+          if (dateCurrent < dateStop) {
+            index++;
+            const past = dateCurrent < now;
+            if (!daysOld && !past) {
+              daysOld = index;
+              console.log(`${daysOld} days old`);
+              console.log(
+                `${((daysOld / 36525) * 100).toFixed(2)}% 100-year life lived`
+              );
+            }
+            context.fillStyle = past ? "white" : "#333";
+            context.fillRect(
+              x + nodeOffset,
+              y + nodeOffset,
+              nodeDrawDi,
+              nodeDrawDi
+            );
+
+            if (landscape) {
+              x += nodeDi;
+            } else {
+              y += nodeDi;
+            }
+
+            addDaysToDate(dateCurrent, 1);
+
+            if (dateCurrent >= dateAnniversary) {
+              if (landscape) {
+                y += nodeDi;
+                x = 0;
+              } else {
+                x += nodeDi;
+                y = 0;
+              }
+              dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
+            }
+          }
+        }
         if (dateCurrent < dateStop) {
           requestAnimationFrame(step);
-          index++;
-          const past = dateCurrent < now;
-          if (!daysOld && !past) {
-            daysOld = index;
-            console.log(`${daysOld} days old`);
-            console.log(
-              `${((daysOld / 36525) * 100).toFixed(2)}% 100-year life lived`
-            );
-          }
-          context.fillStyle = past ? "white" : "#333";
-          context.fillRect(
-            x + nodeOffset,
-            y + nodeOffset,
-            nodeDrawWidth,
-            nodeDrawHeight
-          );
-          if (landscape) {
-            x += nodeWidth;
-          } else {
-            y += nodeHeight;
-          }
-
-          addDaysToDate(dateCurrent, 1);
-
-          if (dateCurrent >= dateAnniversary) {
-            if (landscape) {
-              y += nodeHeight;
-              x = 0;
-            } else {
-              x += nodeWidth;
-              y = 0;
-            }
-            dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
-          }
         }
       }
     </script>
