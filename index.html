@@ -41,7 +41,7 @@
       const paramSpeed =
         paramSpeedMatch && paramSpeedMatch[1]
           ? parseInt(paramSpeedMatch[1])
-          : 1;
+          : 500;
       const speed = isNaN(paramSpeed) ? 1 : paramSpeed || 1;
 
       const addDaysToDate = (date, days) => {
