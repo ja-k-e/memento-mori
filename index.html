@@ -15,13 +15,12 @@
         background: black;
         box-sizing: border-box;
         margin: 0;
-        padding: 0.5rem;
+        padding: 0.8rem;
       }
 
       canvas {
         display: block;
         height: 100%;
-        image-rendering: pixelated;
         margin: 0 auto;
         object-fit: contain;
         object-position: center;
@@ -34,90 +33,53 @@
     <canvas></canvas>
 
     <script>
+      console.clear();
       const dateStart = new Date(1987, 0, 23);
       const dateStop = new Date(2087, 0, 23);
+      const differenceTime = dateStop.getTime() - dateStart.getTime();
+      const differenceDays = differenceTime / (1000 * 3600 * 24);
       const now = Date.now();
-      const paramSpeedMatch = location.search.match(/speed=(\d+)/);
-      const paramSpeed =
-        paramSpeedMatch && paramSpeedMatch[1]
-          ? parseInt(paramSpeedMatch[1])
-          : 500;
-      const speed = isNaN(paramSpeed) ? 1 : paramSpeed || 1;
-
-      const addDaysToDate = (date, days) => {
-        date.setDate(date.getDate() + days);
-        return date;
-      };
-
-      let dateCurrent = new Date(dateStart);
-      let dateAnniversary = new Date(dateCurrent);
-      dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
-
+      const differenceTimeNow = now - dateStart.getTime();
+      const differenceDaysNow = differenceTimeNow / (1000 * 3600 * 24);
       const canvas = document.querySelector("canvas");
       const context = canvas.getContext("2d");
-      const landscape = window.innerHeight > window.innerWidth ? 0 : 1;
-      const dimension =
-        (landscape ? window.innerWidth : window.innerHeight) * 2;
-      const nodeDi = dimension / 366;
-      const nodeOffset = nodeDi * 0.2;
-      const nodeDrawDi = nodeDi - nodeOffset * 2;
-      canvas.height = landscape ? nodeDi * 100 : nodeDi * 366;
-      canvas.width = landscape ? nodeDi * 366 : nodeDi * 100;
-
-      context.fillStyle = "black";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-
-      let index = 0;
-      let x = 0;
-      let y = 0;
-      let daysOld = 0;
+      
+      const width = canvas.width = window.innerWidth * 2;
+      const height = canvas.height = window.innerHeight * 2;
+      const { diameter, columns, rows } = calculateDimensions(width, height, differenceDays);
+      canvas.width = columns * diameter;
+      canvas.height = rows * diameter;
+      let i = 0;
 
       step();
 
       function step() {
-        const n = speed;
-        for (let i = 0; i < n; i++) {
-          if (dateCurrent < dateStop) {
-            index++;
-            const past = dateCurrent < now;
-            if (!daysOld && !past) {
-              daysOld = index;
-              console.log(`${daysOld} days old`);
-              console.log(
-                `${((daysOld / 36525) * 100).toFixed(2)}% 100-year life lived`
-              );
-            }
-            context.fillStyle = past ? "white" : "#333";
-            context.fillRect(
-              x + nodeOffset,
-              y + nodeOffset,
-              nodeDrawDi,
-              nodeDrawDi
-            );
-
-            if (landscape) {
-              x += nodeDi;
-            } else {
-              y += nodeDi;
-            }
-
-            addDaysToDate(dateCurrent, 1);
-
-            if (dateCurrent >= dateAnniversary) {
-              if (landscape) {
-                y += nodeDi;
-                x = 0;
-              } else {
-                x += nodeDi;
-                y = 0;
-              }
-              dateAnniversary.setYear(dateCurrent.getFullYear() + 1);
-            }
-          }
-        }
-        if (dateCurrent < dateStop) {
+        if (i < differenceDays) {
           requestAnimationFrame(step);
+        } else {
+          console.log("done")
         }
+        for (let j = 0; j < 7; j++) {
+          const y = Math.floor(i / columns);
+          const x = i % columns;
+          const past = i < differenceDaysNow;
+          context.fillStyle = past ? "white" : "yellow";
+          context.beginPath();
+          context.arc(x * diameter + diameter * 0.5, y * diameter + diameter * 0.5, diameter * 0.3, 0, 2 * Math.PI, false);
+          context.fill();
+          i++;
+        }
+      }
+      
+      function calculateDimensions(canvasWidth, canvasHeight, squareCount) {
+        const totalArea = canvasWidth * canvasHeight;
+        const squareArea = totalArea / squareCount;
+        const diameter = Math.sqrt(squareArea);
+
+        const columns = Math.floor(canvasWidth / diameter);
+        const rows = Math.ceil(squareCount / columns);
+
+        return { diameter, columns, rows };
       }
     </script>
   </body>
